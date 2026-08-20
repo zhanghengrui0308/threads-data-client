@@ -1,0 +1,23 @@
+{
+  "name": "threads-data-client",
+  "version": "0.1.0",
+  "description": "Typed JavaScript client for scraping public Threads (Meta) posts, replies, profiles, keyword search and creators. No login, no cookies.",
+  "type": "module",
+  "main": "src/index.mjs",
+  "exports": { ".": "./src/index.mjs" },
+  "files": ["src", "README.md", "LICENSE"],
+  "engines": { "node": ">=18" },
+  "scripts": {
+    "example:search": "node examples/search-keywords.mjs",
+    "example:replies": "node examples/post-replies.mjs",
+    "example:creators": "node examples/find-creators.mjs"
+  },
+  "keywords": [
+    "threads", "threads-scraper", "meta-threads", "threads-api",
+    "social-media-scraper", "scraper", "apify", "social-listening",
+    "influencer-discovery", "creator-discovery", "osint", "data-extraction"
+  ],
+  "license": "MIT",
+  "dependencies": {},
+  "devDependencies": {}
+}
