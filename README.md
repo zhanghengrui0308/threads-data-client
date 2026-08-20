@@ -60,7 +60,7 @@ Neither is a bypass — every surface is the same public endpoint the Threads we
 
 **If a tool promises you "all 800 replies" without an account, it is either driving logged-in accounts (against Threads' terms, and those accounts get banned) or it is not telling you the truth.**
 
-📄 **[What Threads actually returns when you are not logged in](docs/threads-logged-out-limits.md)**
+📄 **[What Threads actually returns when you are not logged in](https://zhanghengrui0308.github.io/threads-data-client/)**
 — the full measured reference behind these numbers, including the five search
 surfaces, the four profile tabs, and why Meta serves a 255 KB empty shell to
 datacenter IPs and a 906 KB server-rendered page to everyone else.
