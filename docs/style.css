@@ -1,0 +1,44 @@
+:root{
+  --bg:#fdfdfc; --fg:#1a1a18; --muted:#5d5d57; --rule:#e2e0da;
+  --accent:#8a4b2a; --code-bg:#f4f2ed; --card:#f8f7f3; --warn-bg:#fdf6e8; --warn-br:#d9a441;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#16161a; --fg:#e8e6e1; --muted:#a3a099; --rule:#2e2e34;
+    --accent:#e0975f; --code-bg:#1f1f25; --card:#1c1c22; --warn-bg:#2a2418; --warn-br:#8a6d2f;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#16161a; --fg:#e8e6e1; --muted:#a3a099; --rule:#2e2e34;
+  --accent:#e0975f; --code-bg:#1f1f25; --card:#1c1c22; --warn-bg:#2a2418; --warn-br:#8a6d2f;
+}
+*{box-sizing:border-box}
+body{
+  margin:0; background:var(--bg); color:var(--fg);
+  font:16px/1.65 ui-serif,Georgia,"Iowan Old Style",Palatino,serif;
+  -webkit-text-size-adjust:100%;
+}
+.wrap{max-width:47rem; margin:0 auto; padding:3.5rem 1.25rem 5rem}
+h1{font-size:clamp(1.8rem,5vw,2.5rem); line-height:1.15; letter-spacing:-.02em; margin:0 0 .5rem}
+h2{font-size:1.35rem; letter-spacing:-.01em; margin:3rem 0 .75rem; padding-top:1.5rem; border-top:1px solid var(--rule)}
+h3{font-size:1.05rem; margin:2rem 0 .5rem}
+.lede{font-size:1.1rem; color:var(--muted); margin:0 0 2rem}
+p,li{margin:0 0 1rem}
+a{color:var(--accent); text-decoration-thickness:1px; text-underline-offset:2px}
+strong{font-weight:600}
+code,pre{font-family:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace}
+code{background:var(--code-bg); padding:.12em .35em; border-radius:3px; font-size:.88em}
+pre{background:var(--code-bg); padding:1rem; border-radius:6px; overflow-x:auto; font-size:.85rem; line-height:1.5}
+pre code{background:none; padding:0}
+.scroll{overflow-x:auto; margin:0 0 1.5rem; -webkit-overflow-scrolling:touch}
+table{border-collapse:collapse; width:100%; font-size:.92rem;
+  font-family:system-ui,-apple-system,"Segoe UI",sans-serif}
+th,td{text-align:left; padding:.55rem .8rem; border-bottom:1px solid var(--rule); vertical-align:top}
+th{font-weight:600; font-size:.82rem; text-transform:uppercase; letter-spacing:.04em; color:var(--muted)}
+tbody tr:last-child td{border-bottom:none}
+.note{background:var(--card); border-left:3px solid var(--rule); padding:1rem 1.15rem; margin:1.5rem 0; font-size:.95rem}
+.note :last-child{margin-bottom:0}
+.warn{background:var(--warn-bg); border-left-color:var(--warn-br)}
+.meta{font-size:.85rem; color:var(--muted); font-family:system-ui,sans-serif}
+footer{margin-top:4rem; padding-top:1.5rem; border-top:1px solid var(--rule); font-size:.9rem; color:var(--muted)}
+ul{padding-left:1.3rem}

@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Threads API or Scraping? What Each One Can Actually Do</title>
+<meta name="description" content="Meta's official Threads API does have keyword search — with an approved permission. Here is exactly what it covers, what it refuses, and when scraping public pages is the only option. Sourced from Meta's own docs.">
+<link rel="canonical" href="https://zhanghengrui0308.github.io/threads-data-client/threads-api-vs-scraping/">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Threads API or scraping? What each one can actually do">
+<meta property="og:description" content="The official API reads your own content, plus public keyword search once threads_keyword_search is approved. Everything else about other users is out of scope.">
+<meta property="og:url" content="https://zhanghengrui0308.github.io/threads-data-client/threads-api-vs-scraping/">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="/threads-data-client/style.css">
+</head>
+<body>
+<div class="wrap">
+
+<h1>Threads API or scraping? What each one can actually do</h1>
+<p class="lede">Sourced from Meta's own documentation. August 2026.</p>
+
+<p>There is a lot of confidently wrong writing about this. Several widely-shared guides state that
+the official Threads API "has no search functionality" — <strong>that is not true</strong>, and
+building a decision on it will send you down the wrong path. Meta ships a Keyword Search endpoint.
+What it needs, and what it still will not give you, is the actual question.</p>
+
+<p>Every claim below traces to
+<a href="https://developers.facebook.com/docs/threads">developers.facebook.com/docs/threads</a>.
+Where we scraped a number ourselves, it says so.</p>
+
+<h2>The short answer</h2>
+
+<div class="scroll"><table>
+<thead><tr><th>What you need</th><th>Official API</th><th>Public pages</th></tr></thead>
+<tbody>
+<tr><td>Publish or schedule your own posts</td><td><strong>Yes — use it</strong></td><td>No</td></tr>
+<tr><td>Analytics on your own posts</td><td><strong>Yes — use it</strong></td><td>No</td></tr>
+<tr><td>Manage replies to your own posts</td><td><strong>Yes — use it</strong></td><td>Partially</td></tr>
+<tr><td>Keyword search across public posts</td><td><strong>Yes, with an approved permission</strong></td><td>Yes, no approval</td></tr>
+<tr><td>Replies under someone else's post</td><td>No</td><td>Yes (~20)</td></tr>
+<tr><td>Posts on an arbitrary user's profile</td><td>No</td><td>Yes (16–22)</td></tr>
+<tr><td>Find creators by topic</td><td>No</td><td>Yes</td></tr>
+</tbody></table></div>
+
+<div class="note"><p>If your job is on the first three rows, <strong>stop reading and use the
+official API</strong>. It is built for exactly that, it is supported, and no scraper should be
+anywhere near your own account's publishing pipeline.</p></div>
+
+<h2>What the official API actually covers</h2>
+
+<h3>Content access is limited to the publisher</h3>
+
+<p>The documentation is explicit that visibility of posts is limited to the person who created
+them. The publishing, insights, reply-management and delete endpoints all operate on the
+authenticated user's own content. There is no endpoint that hands you an arbitrary user's profile
+feed.</p>
+
+<h3>Keyword Search is the exception — and it is real</h3>
+
+<p>The Keyword Search endpoint searches public Threads media by keyword or hashtag, and lets you
+interact with the results (reply, quote, repost). Its reach depends on one permission:</p>
+
+<div class="scroll"><table>
+<thead><tr><th>Permission state</th><th>What you can search</th></tr></thead>
+<tbody>
+<tr><td><code>threads_keyword_search</code> not approved</td><td>Only the authenticated user's own posts</td></tr>
+<tr><td><code>threads_keyword_search</code> approved</td><td><strong>All public posts</strong></td></tr>
+</tbody></table></div>
+
+<p><code>threads_basic</code> is required for every Threads API endpoint, and
+<code>threads_keyword_search</code> is required on top of it for this one.</p>
+
+<h3>Its documented limits</h3>
+
+<div class="scroll"><table>
+<thead><tr><th>Limit</th><th>Value</th></tr></thead>
+<tbody>
+<tr><td>Queries</td><td><strong>2,200 per rolling 24 hours</strong>, per user</td></tr>
+<tr><td>Repeat queries</td><td>Re-querying the same keyword still counts against the quota</td></tr>
+<tr><td>Zero-result queries</td><td>Do <em>not</em> count against the quota</td></tr>
+<tr><td>Results per query</td><td>25 by default, <strong>100 maximum</strong></td></tr>
+<tr><td>Earliest timestamp</td><td><code>1688540400</code> — Threads' launch, 2023-07-05</td></tr>
+</tbody></table></div>
+
+<p><strong>100 results per query is more than logged-out scraping gets you</strong> — we measure
+about 50 unique posts per keyword after merging all five public search surfaces. If you can get the
+permission approved, the official endpoint is the better instrument for keyword search, and we will
+not pretend otherwise.</p>
+
+<h3>Other documented ceilings</h3>
+
+<div class="scroll"><table>
+<thead><tr><th>Action</th><th>Per 24 hours</th></tr></thead>
+<tbody>
+<tr><td>Posts published via API</td><td>250 (a carousel counts as one)</td></tr>
+<tr><td>Replies</td><td>1,000</td></tr>
+<tr><td>Deletes</td><td>100</td></tr>
+<tr><td>Location searches</td><td>500</td></tr>
+</tbody></table></div>
+
+<p>General API call volume is derived from impressions — <code>4800 &times; impressions</code>,
+with impressions floored at 10. A new account with no reach therefore gets a small budget, which is
+worth knowing before you design around it.</p>
+
+<p>Content specs, for completeness: 500 characters of text, video up to 5 minutes, images up to
+8&nbsp;MB, carousels of 2–20 items.</p>
+
+<h2>What the official API will not do, at any permission level</h2>
+
+<ul>
+<li><strong>Give you the replies under another account's post.</strong> Reply management covers
+replies to <em>your</em> content.</li>
+<li><strong>Give you an arbitrary user's profile feed.</strong> There is no such endpoint.</li>
+<li><strong>Rank creators by how they perform on a topic.</strong> Insights are your own posts
+only.</li>
+</ul>
+
+<p>These are the cases where reading public pages is the only route — and where we built our
+tooling. Not because scraping is better, but because for these questions the official API is not
+in the running.</p>
+
+<h2>What reading public pages costs you instead</h2>
+
+<p>It is not free of limits either, and the limits are Meta's:</p>
+
+<div class="scroll"><table>
+<thead><tr><th>Surface</th><th>Ceiling without an account</th></tr></thead>
+<tbody>
+<tr><td>Replies to a post</td><td><strong>~20</strong>, hard — then a login wall</td></tr>
+<tr><td>Keyword search</td><td>~20 per surface; ~50 after merging all five</td></tr>
+<tr><td>Posts on a profile</td><td>~5 per tab; 16–22 after merging all four</td></tr>
+</tbody></table></div>
+
+<p>Full measurements, method and dates are on the
+<a href="/threads-data-client/">reference page</a>, including the empty shell page Meta serves to
+datacenter IPs as a valid HTTP 200 — the single most common reason a Threads scraper silently
+returns nothing.</p>
+
+<h2>How to choose, honestly</h2>
+
+<ol>
+<li><strong>Working with your own account?</strong> Official API. No exceptions.</li>
+<li><strong>Pure keyword search, and you can wait for App Review?</strong> Official API — 100
+results per query beats what public pages give you, and it is fully supported.</li>
+<li><strong>Need it working today, or without a linked business account?</strong> Public pages.
+Fewer results per keyword, no approval queue.</li>
+<li><strong>Need other users' replies, profile feeds, or topic-based creator discovery?</strong>
+Public pages are the only option, because the official API does not cover it.</li>
+</ol>
+
+<h2>If public pages are what you need</h2>
+
+<p>Three Actors, reading public pages only — no login, no cookies, no CAPTCHA solving, no
+access-control circumvention:</p>
+<ul>
+<li><a href="https://apify.com/northbound-data/threads-scraper"><strong>Threads Scraper</strong></a>
+    — posts, replies, profiles and search in one run</li>
+<li><a href="https://apify.com/northbound-data/threads-search-scraper"><strong>Threads Search Scraper</strong></a>
+    — keyword search, deduplicated across keywords</li>
+<li><a href="https://apify.com/northbound-data/threads-creator-finder"><strong>Threads Creator Finder</strong></a>
+    — creators ranked by engagement on your topic</li>
+</ul>
+
+<p>Or read <a href="https://github.com/zhanghengrui0308/threads-data-client">the client</a>. Either
+way, the ceilings above apply — they are Meta's, not ours.</p>
+
+<footer>
+<p class="meta">Official API facts sourced from
+<a href="https://developers.facebook.com/docs/threads">Meta's Threads API documentation</a>,
+checked 2026-08-20. Scraping figures measured 2026-08-19. Published by
+<a href="https://github.com/zhanghengrui0308/threads-data-client">threads-data-client</a>.
+&nbsp;·&nbsp; <a href="/threads-data-client/">Measurement reference</a></p>
+</footer>
+
+</div>
+</body>
+</html>
