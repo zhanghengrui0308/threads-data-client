@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://zhanghengrui0308.github.io/threads-data-client/sitemap.xml
