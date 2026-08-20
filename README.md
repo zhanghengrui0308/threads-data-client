@@ -5,8 +5,12 @@ A tiny, dependency-free JavaScript client for pulling **public Threads (Meta)** 
 **No login. No cookies. No account of yours is ever used.**
 
 ```bash
-npm install threads-data-client
+npm install github:zhanghengrui0308/threads-data-client
 ```
+
+> Installing from GitHub because the npm package is not published yet. The
+> command above is tested and works today; this line changes the moment
+> `npm install threads-data-client` does.
 
 ```js
 import { ThreadsClient } from 'threads-data-client';
@@ -29,7 +33,7 @@ Node 18+. No dependencies — it is a few hundred lines over `fetch`.
 | `threads.search(keywords)` | Keyword search, deduplicated across keywords |
 | `threads.findCreators(topics)` | Creators ranked by engagement **on your topic**, not follower count |
 | `threads.runSummary(runId)` | The run's own reliability report |
-| `ThreadsClient.estimateCost(actorId, n)` | Exact USD cost before you run anything |
+| `ThreadsClient.estimateCost(actorId, n, tier)` | USD cost before you run anything — tier-aware |
 
 Execution happens on [Apify](https://apify.com), so you need a free account and an API token. The client handles starting the run, polling it, paginating the dataset and surfacing errors.
 
@@ -97,8 +101,8 @@ const creators = await threads.findCreators(['sustainable fashion'], {
 });
 
 // Know the bill before you run it
-import { ACTORS } from 'threads-data-client';
-ThreadsClient.estimateCost(ACTORS.search, 500); // 2.5
+ThreadsClient.estimateCost('search', 500);             // 2.50 — FREE tier
+ThreadsClient.estimateCost('search', 500, 'DIAMOND');  // 1.25 — top tier
 ```
 
 Runnable versions live in [`examples/`](examples).
@@ -109,11 +113,18 @@ Runnable versions live in [`examples/`](examples).
 
 Pay per delivered record. `maxItems` is a hard cap, so a typo in a keyword list cannot become a surprise bill.
 
-| Actor | Per 1,000 records |
-|---|---|
-| Threads Scraper | $5.00 |
-| Threads Search Scraper | $5.00 |
-| Threads Creator Finder | $20.00 |
+Price per 1,000 delivered records, in USD. **Your Apify plan tier discounts it**
+(verified against the published Actor pricing, 2026-08-20):
+
+| Actor | FREE | BRONZE | SILVER | GOLD | PLATINUM | DIAMOND |
+|---|---|---|---|---|---|---|
+| Threads Scraper | $5.00 | $4.50 | $4.00 | $3.50 | $3.00 | $2.50 |
+| Threads Search Scraper | $5.00 | $4.50 | $4.00 | $3.50 | $3.00 | $2.50 |
+| Threads Creator Finder | $20.00 | $18.00 | $16.00 | $14.00 | $12.00 | $10.00 |
+
+Each run also carries a flat start charge of $0.00003–$0.00005, which buys the
+first five seconds of compute. `estimateCost` includes it, and **defaults to the
+FREE tier** so an unspecified estimate is never an under-quote.
 
 Duplicates within a run are never billed twice.
 

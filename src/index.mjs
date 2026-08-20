@@ -28,12 +28,32 @@ export const ACTORS = {
   creators: 'B4TWrq5C6iKFJEqX3',
 };
 
-/** Price per 1,000 delivered records, in USD. Used by `estimateCost`. */
-export const PRICE_PER_1K = {
-  [ACTORS.scraper]: 5.0,
-  [ACTORS.search]: 5.0,
-  [ACTORS.creators]: 20.0,
+/**
+ * Apify plan tiers, cheapest-to-most-discounted. Your tier follows your Apify
+ * subscription — you do not set it here, it is only used to estimate cost.
+ */
+export const TIERS = ['FREE', 'BRONZE', 'SILVER', 'GOLD', 'PLATINUM', 'DIAMOND'];
+
+/**
+ * Price per 1,000 delivered records, in USD, per Apify plan tier.
+ * Mirrors the Actors' published pay-per-event pricing (verified 2026-08-20).
+ */
+export const PRICE_PER_1K_BY_TIER = {
+  [ACTORS.scraper]:  { FREE: 5.0, BRONZE: 4.5, SILVER: 4.0, GOLD: 3.5, PLATINUM: 3.0, DIAMOND: 2.5 },
+  [ACTORS.search]:   { FREE: 5.0, BRONZE: 4.5, SILVER: 4.0, GOLD: 3.5, PLATINUM: 3.0, DIAMOND: 2.5 },
+  [ACTORS.creators]: { FREE: 20.0, BRONZE: 18.0, SILVER: 16.0, GOLD: 14.0, PLATINUM: 12.0, DIAMOND: 10.0 },
 };
+
+/** Flat per-run start charge, in USD, per tier. Buys the first 5s of compute. */
+export const RUN_START_USD = {
+  FREE: 0.00005, BRONZE: 0.00005, SILVER: 0.00004,
+  GOLD: 0.00004, PLATINUM: 0.00003, DIAMOND: 0.00003,
+};
+
+/** Price per 1,000 records on the FREE tier. Kept for convenience. */
+export const PRICE_PER_1K = Object.fromEntries(
+  Object.entries(PRICE_PER_1K_BY_TIER).map(([id, byTier]) => [id, byTier.FREE]),
+);
 
 export class ThreadsApiError extends Error {
   constructor(message, { status, body } = {}) {
@@ -135,13 +155,36 @@ export class ThreadsClient {
   }
 
   /**
-   * What a run of `records` records costs, in USD. Pricing is pay-per-result,
-   * so this is exact rather than a guess at compute time.
+   * What a run of `records` records costs, in USD.
+   *
+   * Pricing is pay-per-result, so this is arithmetic on a published price
+   * rather than a guess at compute time. Two things make it depend on you:
+   * your Apify plan tier discounts the per-record price, and every run also
+   * carries a flat start charge. Both are included.
+   *
+   * `actorId` accepts either a real Actor id or its short key (`'scraper'`,
+   * `'search'`, `'creators'`).
+   *
+   * @param {string} actorId
+   * @param {number} records
+   * @param {string} [tier='FREE'] Your Apify plan tier. Defaults to the most
+   *   expensive one, so an unspecified estimate is never an under-quote.
+   * @returns {number} USD
    */
-  static estimateCost(actorId, records) {
-    const per1k = PRICE_PER_1K[actorId];
-    if (per1k === undefined) throw new Error(`Unknown actor id: ${actorId}`);
-    return (records / 1000) * per1k;
+  static estimateCost(actorId, records, tier = 'FREE') {
+    const id = ACTORS[actorId] ?? actorId;
+    const byTier = PRICE_PER_1K_BY_TIER[id];
+    if (byTier === undefined) {
+      throw new Error(
+        `Unknown Actor: ${actorId}. Expected one of ${Object.keys(ACTORS).join(', ')} ` +
+        `or an Actor id (${Object.values(ACTORS).join(', ')}).`,
+      );
+    }
+    const per1k = byTier[tier];
+    if (per1k === undefined) {
+      throw new Error(`Unknown plan tier: ${tier}. Expected one of ${TIERS.join(', ')}.`);
+    }
+    return RUN_START_USD[tier] + (records / 1000) * per1k;
   }
 
   // ---- internals -------------------------------------------------------
