@@ -60,6 +60,11 @@ Neither is a bypass — every surface is the same public endpoint the Threads we
 
 **If a tool promises you "all 800 replies" without an account, it is either driving logged-in accounts (against Threads' terms, and those accounts get banned) or it is not telling you the truth.**
 
+📄 **[What Threads actually returns when you are not logged in](docs/threads-logged-out-limits.md)**
+— the full measured reference behind these numbers, including the five search
+surfaces, the four profile tabs, and why Meta serves a 255 KB empty shell to
+datacenter IPs and a 906 KB server-rendered page to everyone else.
+
 This is built for **per-target lookup at volume**: point it at 1,000 posts and get the top ~20 replies for each, reliably. It is not a bulk archive crawler.
 
 ---
