@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Threads Scraping Limits Without Login — A Measured Reference (2026)</title>
+<meta name="description" content="Exactly what Threads (Meta) returns when you are not logged in: the ~20 reply cap, five public search surfaces, four profile tabs, and why Meta serves a 255 KB empty shell to datacenter IPs. Every figure measured and dated.">
+<link rel="canonical" href="https://zhanghengrui0308.github.io/threads-data-client/">
+<meta property="og:type" content="article">
+<meta property="og:title" content="What Threads actually returns when you are not logged in">
+<meta property="og:description" content="A measured reference: the ~20 reply cap, five search surfaces, four profile tabs, and the 255 KB shell page Meta serves to datacenter IPs as HTTP 200.">
+<meta property="og:url" content="https://zhanghengrui0308.github.io/threads-data-client/">
+<meta name="twitter:card" content="summary_large_image">
+<style>
+:root{
+  --bg:#fdfdfc; --fg:#1a1a18; --muted:#5d5d57; --rule:#e2e0da;
+  --accent:#8a4b2a; --code-bg:#f4f2ed; --card:#f8f7f3; --warn-bg:#fdf6e8; --warn-br:#d9a441;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#16161a; --fg:#e8e6e1; --muted:#a3a099; --rule:#2e2e34;
+    --accent:#e0975f; --code-bg:#1f1f25; --card:#1c1c22; --warn-bg:#2a2418; --warn-br:#8a6d2f;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#16161a; --fg:#e8e6e1; --muted:#a3a099; --rule:#2e2e34;
+  --accent:#e0975f; --code-bg:#1f1f25; --card:#1c1c22; --warn-bg:#2a2418; --warn-br:#8a6d2f;
+}
+*{box-sizing:border-box}
+body{
+  margin:0; background:var(--bg); color:var(--fg);
+  font:16px/1.65 ui-serif,Georgia,"Iowan Old Style",Palatino,serif;
+  -webkit-text-size-adjust:100%;
+}
+.wrap{max-width:47rem; margin:0 auto; padding:3.5rem 1.25rem 5rem}
+h1{font-size:clamp(1.8rem,5vw,2.5rem); line-height:1.15; letter-spacing:-.02em; margin:0 0 .5rem}
+h2{font-size:1.35rem; letter-spacing:-.01em; margin:3rem 0 .75rem; padding-top:1.5rem; border-top:1px solid var(--rule)}
+h3{font-size:1.05rem; margin:2rem 0 .5rem}
+.lede{font-size:1.1rem; color:var(--muted); margin:0 0 2rem}
+p,li{margin:0 0 1rem}
+a{color:var(--accent); text-decoration-thickness:1px; text-underline-offset:2px}
+strong{font-weight:600}
+code,pre{font-family:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace}
+code{background:var(--code-bg); padding:.12em .35em; border-radius:3px; font-size:.88em}
+pre{background:var(--code-bg); padding:1rem; border-radius:6px; overflow-x:auto; font-size:.85rem; line-height:1.5}
+pre code{background:none; padding:0}
+.scroll{overflow-x:auto; margin:0 0 1.5rem; -webkit-overflow-scrolling:touch}
+table{border-collapse:collapse; width:100%; font-size:.92rem;
+  font-family:system-ui,-apple-system,"Segoe UI",sans-serif}
+th,td{text-align:left; padding:.55rem .8rem; border-bottom:1px solid var(--rule); vertical-align:top}
+th{font-weight:600; font-size:.82rem; text-transform:uppercase; letter-spacing:.04em; color:var(--muted)}
+tbody tr:last-child td{border-bottom:none}
+.note{background:var(--card); border-left:3px solid var(--rule); padding:1rem 1.15rem; margin:1.5rem 0; font-size:.95rem}
+.note :last-child{margin-bottom:0}
+.warn{background:var(--warn-bg); border-left-color:var(--warn-br)}
+.meta{font-size:.85rem; color:var(--muted); font-family:system-ui,sans-serif}
+footer{margin-top:4rem; padding-top:1.5rem; border-top:1px solid var(--rule); font-size:.9rem; color:var(--muted)}
+ul{padding-left:1.3rem}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<h1>What Threads actually returns when you are not logged in</h1>
+<p class="lede">A measured reference. August 2026.</p>
+
+<p>Every number here came from a real request against <code>threads.com</code>, logged out, and is
+dated. Where we could not establish something, it says so. If you find a number that no longer
+holds, <a href="https://github.com/zhanghengrui0308/threads-data-client/issues">open an issue</a>
+— a stale measurement presented as current is the same as a wrong one.</p>
+
+<h2>Summary</h2>
+<div class="scroll"><table>
+<thead><tr><th>Surface</th><th>Ceiling without an account</th></tr></thead>
+<tbody>
+<tr><td>Replies to a post</td><td><strong>~20</strong>, hard</td></tr>
+<tr><td>Keyword search</td><td><strong>~20 per surface</strong>, and there are <strong>5 surfaces</strong></td></tr>
+<tr><td>Posts on a profile</td><td><strong>~5 per tab</strong>, and there are <strong>4 tabs</strong></td></tr>
+</tbody></table></div>
+
+<p>The second and third rows are the interesting ones. Meta caps each <em>entry point</em> rather
+than the total, so querying every public entry point and merging returns substantially more than
+any single one — without an account, and without touching anything that is not already public.</p>
+
+<h2>1. Replies really are capped at ~20</h2>
+
+<p>Request a post page logged out and you get the post plus roughly its first 20 replies. Past
+that, Threads renders one of:</p>
+
+<pre><code>Log in to see more replies.
+Log in to see more from &lt;username&gt;</code></pre>
+
+<p>Both strings are <strong>client-side rendered</strong>. They are not in the HTML you receive,
+which is why a naive scraper reports success and silently hands you a truncated thread. Detecting
+the wall means rendering the page or inferring it from the reply count in the payload.</p>
+
+<div class="note"><p><strong>This ceiling cannot be raised without an account.</strong> Any tool
+promising you “all 800 replies” logged out is either driving logged-in accounts — against Threads’
+terms, and those accounts get banned — or it is not telling you the truth.</p></div>
+
+<h2>2. Search has five public surfaces, not one</h2>
+
+<p>Threads’ own website queries several different search endpoints:</p>
+
+<div class="scroll"><table>
+<thead><tr><th>Surface</th><th>Query</th></tr></thead>
+<tbody>
+<tr><td>Default</td><td><code>serp_type=default</code></td></tr>
+<tr><td>Recent</td><td><code>serp_type=default&amp;filter=recent</code></td></tr>
+<tr><td>Top</td><td><code>serp_type=default&amp;filter=top</code></td></tr>
+<tr><td>Users</td><td><code>serp_type=users</code></td></tr>
+<tr><td>Tags</td><td><code>serp_type=tags</code></td></tr>
+</tbody></table></div>
+
+<p>Each is capped around 20. <strong>Each returns a different result set.</strong> Measured,
+deduplicated by post ID:</p>
+
+<div class="scroll"><table>
+<thead><tr><th>Keyword</th><th>Default surface alone</th><th>All five merged</th></tr></thead>
+<tbody>
+<tr><td><code>ai agents</code></td><td>20</td><td><strong>47</strong></td></tr>
+<tr><td><code>climate tech</code></td><td>21</td><td><strong>54</strong></td></tr>
+</tbody></table></div>
+
+<p>That is <strong>2.4–2.7&times;</strong> more unique posts, from public endpoints the Threads
+website itself uses.</p>
+
+<h2>3. Profiles have four public tabs</h2>
+
+<div class="scroll"><table>
+<thead><tr><th>Tab</th><th>Path</th></tr></thead>
+<tbody>
+<tr><td>Threads</td><td><code>/@user</code></td></tr>
+<tr><td>Replies</td><td><code>/@user/replies</code></td></tr>
+<tr><td>Media</td><td><code>/@user/media</code></td></tr>
+<tr><td>Reposts</td><td><code>/@user/reposts</code></td></tr>
+</tbody></table></div>
+
+<p>Each holds roughly 5 posts logged out, and they hold <em>different</em> posts. Measured:</p>
+
+<div class="scroll"><table>
+<thead><tr><th>Profile</th><th>Main tab alone</th><th>All four merged</th></tr></thead>
+<tbody>
+<tr><td><code>@nasa</code></td><td>5</td><td><strong>16</strong></td></tr>
+<tr><td><code>@mkbhd</code></td><td>6</td><td><strong>22</strong></td></tr>
+</tbody></table></div>
+
+<div class="note"><p><strong>A caveat worth knowing:</strong> <code>replies</code>,
+<code>media</code> and <code>reposts</code> are legitimately empty for many accounts. Treating an
+empty secondary tab as a failure and retrying it is expensive and pointless — <code>@nasa</code>
+has no reposts, and confirming that by rendering the page cost us 32 seconds and raised one run’s
+cost from $0.079 to $0.125 to learn nothing.</p></div>
+
+<h2>4. Meta serves different pages to different IPs</h2>
+
+<p>This is the part that surprised us, and it is not documented anywhere we could find.</p>
+
+<p>Request the same profile two ways on the same day:</p>
+
+<div class="scroll"><table>
+<thead><tr><th>Client</th><th>Response</th></tr></thead>
+<tbody>
+<tr><td>Browser-grade TLS fingerprint, residential IP</td>
+    <td><strong>~906 KB</strong>, full server-rendered JSON in <code>&lt;script type="application/json"&gt;</code> blocks</td></tr>
+<tr><td>Plain <code>curl</code>, or a datacenter IP</td>
+    <td><strong>~255 KB</strong> empty shell, no post data</td></tr>
+</tbody></table></div>
+
+<div class="note warn"><p>The shell is a valid <strong>HTTP 200</strong>. Nothing signals failure.
+A scraper that parses whatever it gets will report “0 posts found” and call it a successful
+run.</p></div>
+
+<p>The practical consequences, measured on the Apify platform, same target, same day
+(2026-08-19):</p>
+
+<div class="scroll"><table>
+<thead><tr><th>Proxy</th><th>Path taken</th><th>Time per profile</th><th>Compute cost per run</th></tr></thead>
+<tbody>
+<tr><td>Datacenter</td><td>forced to full browser rendering</td><td><strong>150 s</strong></td><td>$0.127</td></tr>
+<tr><td>Residential</td><td>direct fetch, no rendering</td><td><strong>3.3 s</strong></td><td>$0.0086</td></tr>
+</tbody></table></div>
+
+<p><strong>45&times; slower and 15&times; more expensive</strong>, for identical output. If your
+Threads scraping suddenly got slow and expensive, this is very likely why.</p>
+
+<p>Two things follow:</p>
+<ul>
+<li><strong>Size is a usable signal.</strong> We treat a response under ~500 KB that yields no posts
+as “the target genuinely does not exist” and stop immediately, and a large response that yields no
+posts as a transient failure worth retrying. Getting this backwards burns money on missing targets
+and gives up on recoverable ones.</li>
+<li><strong>Watch your render ratio.</strong> We log what fraction of fetches fell back to
+rendering. When that number climbs, Meta has started serving shells to the IP range you are on.
+It is the earliest warning you get.</li>
+</ul>
+
+<h2>5. Structure changes, signatures do not</h2>
+
+<p>Most Threads scrapers hard-code GraphQL <code>doc_id</code> values or fixed JSON paths. Both
+change without notice, and when they do the scraper returns zero rows rather than an error.</p>
+
+<p>We identify a post by <strong>structural signature</strong> instead: a node carrying
+<code>pk</code> and <code>user.username</code> and at least one of <code>caption</code>,
+<code>text_post_app_info</code> or <code>taken_at</code>. A refactor that moves the data degrades
+the result instead of killing the run.</p>
+
+<p>One thing to filter explicitly: Threads returns <strong>recommended posts in the same payload as
+genuine replies</strong>. Keys like <code>relatedPosts</code>, <code>recommendedPosts</code> and
+<code>suggestedUsers</code> sit alongside the real thread. Parse the payload naively and your
+“30 replies to my post” quietly include 10 strangers discussing something else.</p>
+
+<h2>6. Not every brand is on Threads</h2>
+
+<p>Worth checking before you blame your scraper. Of 40 well-known brand handles we tested, these
+had <strong>no Threads account</strong> as of August 2026:</p>
+
+<p><code>tesla</code> · <code>spacex</code> · <code>apple</code> · <code>stripe</code> ·
+<code>vercel</code> · <code>anthropicai</code></p>
+
+<p>A missing target is not a failure, and a tool that counts it as one is inflating its own error
+rate while telling you nothing useful. Separate the two, and report which inputs were bad.</p>
+
+<h2>Method</h2>
+
+<p>Measurements were taken via the Actors this client wraps, running on Apify with residential
+proxies, reading only public pages — no login, no cookies, no CAPTCHA solving, no access-control
+circumvention. Threads publishes no <code>robots.txt</code> restriction for these paths.</p>
+
+<p>Benchmark referenced above: 24 tasks (8 profiles, 10 posts, 6 keyword searches),
+<strong>647 records, 0 failed tasks</strong>, 5.5 s average per task, 72 fetches with zero render
+fallbacks.</p>
+
+<h2>If you want this data without building it</h2>
+
+<p>The three Actors behind these measurements are public:</p>
+<ul>
+<li><a href="https://apify.com/northbound-data/threads-scraper"><strong>Threads Scraper</strong></a>
+    — posts, replies, profiles and search in one run</li>
+<li><a href="https://apify.com/northbound-data/threads-search-scraper"><strong>Threads Search Scraper</strong></a>
+    — keyword search, deduplicated across keywords</li>
+<li><a href="https://apify.com/northbound-data/threads-creator-finder"><strong>Threads Creator Finder</strong></a>
+    — creators ranked by engagement on your topic</li>
+</ul>
+
+<p>Or read <a href="https://github.com/zhanghengrui0308/threads-data-client">the client</a> and do
+it yourself. The limits above apply either way — they are Meta’s, not ours.</p>
+
+<footer>
+<p class="meta">Published by <a href="https://github.com/zhanghengrui0308/threads-data-client">threads-data-client</a>,
+an MIT-licensed, dependency-free JavaScript client. Last measured 2026-08-19.</p>
+</footer>
+
+</div>
+</body>
+</html>
