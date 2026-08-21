@@ -222,7 +222,16 @@ rate while telling you nothing useful. Separate the two, and report which inputs
 
 <p>Measurements were taken via the Actors this client wraps, running on Apify with residential
 proxies, reading only public pages — no login, no cookies, no CAPTCHA solving, no access-control
-circumvention. Threads publishes no <code>robots.txt</code> restriction for these paths.</p>
+circumvention.</p>
+
+<div class="note warn"><p><strong>On <code>robots.txt</code>, stated plainly:</strong>
+<code>threads.com/robots.txt</code> runs an allowlist. Named crawlers (Googlebot, Bingbot, GPTBot,
+ClaudeBot and others) are granted specific access; for every other user agent the file says
+<code>Disallow: /</code>, and its opening notice states that automated collection requires express
+written permission from Meta. <strong>Tools that read these pages, including ours, are not on that
+allowlist.</strong> We say so because you should decide with the real facts rather than a
+comfortable summary, and because you are the party accountable for how the data is collected and
+used under Meta's terms and applicable law.</p></div>
 
 <p>Benchmark referenced above: 24 tasks (8 profiles, 10 posts, 6 keyword searches),
 <strong>647 records, 0 failed tasks</strong>, 5.5 s average per task, 72 fetches with zero render

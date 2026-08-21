@@ -167,8 +167,12 @@ which inputs were bad.
 
 Measurements were taken via the Actors this client wraps, running on Apify with
 residential proxies, reading only public pages — no login, no cookies, no CAPTCHA
-solving, no access-control circumvention. Threads publishes no `robots.txt`
-restriction for these paths.
+solving, no access-control circumvention. **On `robots.txt`, stated plainly:** `threads.com/robots.txt` runs an allowlist. Named crawlers
+(Googlebot, Bingbot, GPTBot, ClaudeBot and others) are granted specific access; for every other user
+agent the file says `Disallow: /`, and its opening notice states that automated collection requires
+express written permission from Meta. **This client is not on that allowlist.** We say so because you
+should decide with the real facts rather than a comfortable summary, and because you are the party
+accountable for how the data is collected and used under Meta's terms and applicable law.
 
 Benchmark referenced above: 24 tasks (8 profiles, 10 posts, 6 keyword searches),
 **647 records, 0 failed tasks**, 5.5 s average per task, 72 fetches with zero

@@ -172,7 +172,12 @@ Each of these is a pre-filled example you can run without writing any input JSON
 
 ## Legal & scope
 
-Reads **public** Threads pages only. No login, no cookies, no CAPTCHA solving, no access-control circumvention. Threads publishes no `robots.txt` restriction for these paths.
+Reads **public** Threads pages only. No login, no cookies, no CAPTCHA solving, no access-control circumvention. **On `robots.txt`, stated plainly:** `threads.com/robots.txt` runs an allowlist. Named crawlers
+(Googlebot, Bingbot, GPTBot, ClaudeBot and others) are granted specific access; for every other user
+agent the file says `Disallow: /`, and its opening notice states that automated collection requires
+express written permission from Meta. **This client is not on that allowlist.** We say so because you
+should decide with the real facts rather than a comfortable summary, and because you are the party
+accountable for how the data is collected and used under Meta's terms and applicable law.
 
 You are responsible for how you use the data, including GDPR/CCPA obligations where personal data is involved.
 
